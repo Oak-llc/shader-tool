@@ -39,6 +39,8 @@
     <div id="status-bar">Ready</div>
     <div class="topbar-actions">
       <span id="save-indicator">Changes saved.</span>
+      <!-- Save -->
+      <button class="btn btn-ghost btn-icon" id="manual-save-btn" title="Save current state"><iconify-icon icon="mingcute:save-2-line" width="18" height="18"></iconify-icon></button>
       <!-- Theme toggle -->
       <button class="btn btn-ghost btn-icon" id="theme-toggle" title="Toggle light/dark mode"><iconify-icon icon="mingcute:moon-line" width="18" height="18"></iconify-icon></button>
       <!-- Help -->
@@ -51,33 +53,6 @@
         <button class="provider-btn" data-provider="openai" title="OpenAI GPT-4o">GPT-4o</button>
         <button class="provider-btn" data-provider="gemini" title="Google Gemini">Gemini</button>
         <button class="provider-btn" data-provider="local" title="Local model (LM Studio / Ollama)">Local</button>
-      </div>
-      <!-- Export dropdown -->
-      <div class="dropdown" id="export-dropdown">
-        <button class="btn btn-secondary" id="export-btn">Export <iconify-icon icon="mingcute:down-fill" width="14" height="14" style="vertical-align:middle"></iconify-icon></button>
-        <div class="dropdown-menu" id="export-menu">
-          <div class="dropdown-item" data-export="glsl">
-            <span class="item-icon"><iconify-icon icon="mingcute:code-line" width="16" height="16"></iconify-icon></span>
-            <span class="item-label">Raw GLSL</span>
-            <span class="item-ext">.glsl</span>
-          </div>
-          <div class="dropdown-sep"></div>
-          <div class="dropdown-item" data-export="react">
-            <span class="item-icon"><iconify-icon icon="logos:react" width="16" height="16"></iconify-icon></span>
-            <span class="item-label">React</span>
-            <span class="item-ext">.jsx</span>
-          </div>
-          <div class="dropdown-item" data-export="svelte">
-            <span class="item-icon"><iconify-icon icon="logos:svelte-icon" width="16" height="16"></iconify-icon></span>
-            <span class="item-label">Svelte</span>
-            <span class="item-ext">.svelte</span>
-          </div>
-          <div class="dropdown-item" data-export="vanilla">
-            <span class="item-icon"><iconify-icon icon="logos:javascript" width="16" height="16"></iconify-icon></span>
-            <span class="item-label">Vanilla JS</span>
-            <span class="item-ext">.js</span>
-          </div>
-        </div>
       </div>
       <!-- Buy Me a Coffee -->
       <a href="https://www.buymeacoffee.com/JoeContumelio" target="_blank" rel="noopener noreferrer" id="bmc-btn"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a Coffee&emoji=☕&slug=JoeContumelio&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a Coffee" /></a>
@@ -257,6 +232,33 @@
         </span>
       </div>
       <div class="editor-action-group">
+        <!-- Export dropdown -->
+        <div class="dropdown" id="export-dropdown">
+          <button class="btn btn-ghost" id="export-btn">Export <iconify-icon icon="mingcute:down-fill" width="14" height="14" style="vertical-align:middle"></iconify-icon></button>
+          <div class="dropdown-menu" id="export-menu">
+            <div class="dropdown-item" data-export="glsl">
+              <span class="item-icon"><iconify-icon icon="mingcute:code-line" width="16" height="16"></iconify-icon></span>
+              <span class="item-label">Raw GLSL</span>
+              <span class="item-ext">.glsl</span>
+            </div>
+            <div class="dropdown-sep"></div>
+            <div class="dropdown-item" data-export="react">
+              <span class="item-icon"><iconify-icon icon="logos:react" width="16" height="16"></iconify-icon></span>
+              <span class="item-label">React</span>
+              <span class="item-ext">.jsx</span>
+            </div>
+            <div class="dropdown-item" data-export="svelte">
+              <span class="item-icon"><iconify-icon icon="logos:svelte-icon" width="16" height="16"></iconify-icon></span>
+              <span class="item-label">Svelte</span>
+              <span class="item-ext">.svelte</span>
+            </div>
+            <div class="dropdown-item" data-export="vanilla">
+              <span class="item-icon"><iconify-icon icon="logos:javascript" width="16" height="16"></iconify-icon></span>
+              <span class="item-label">Vanilla JS</span>
+              <span class="item-ext">.js</span>
+            </div>
+          </div>
+        </div>
         <div class="tooltip-anchor" id="adapt-btn-wrap">
           <button class="btn btn-ghost btn-icon" id="adapt-btn" title="Adapt for App"><iconify-icon icon="mingcute:magic-2-line" width="16" height="16"></iconify-icon></button>
           <div class="rich-tooltip" role="tooltip">

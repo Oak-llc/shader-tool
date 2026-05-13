@@ -2006,6 +2006,11 @@ body {
   display: block;
 }
 
+.dropdown-menu.open-up {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
 .dropdown-item {
   display: flex;
   align-items: center;

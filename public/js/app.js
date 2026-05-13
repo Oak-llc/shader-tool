@@ -143,6 +143,7 @@ const leftResizeHandle   = document.getElementById('left-resize-handle');
 const newSessionBtn      = document.getElementById('new-session-btn');
 const paramEditBtn       = document.getElementById('param-edit-btn');
 const paramSaveBtn       = document.getElementById('param-save-btn');
+const manualSaveBtn      = document.getElementById('manual-save-btn');
 const paramsEditBar      = document.getElementById('params-edit-bar');
 const paramsEditCount    = document.getElementById('params-edit-count');
 const paramsEditCancel   = document.getElementById('params-edit-cancel');
@@ -1535,6 +1536,32 @@ paramSaveBtn.addEventListener('click', () => {
 
 paramsEditCancel.addEventListener('click', exitParamsEditMode);
 
+manualSaveBtn.addEventListener('click', () => {
+  const prompt = promptInput.value.trim();
+  const shader = monacoEditor.getValue();
+  if (!activeHistoryItem) {
+    if (!shader.trim()) return;
+    history.unshift({ prompt, shader, name: null, params: controls.getValues(), presets: [], tags: [] });
+    if (history.length > 20) history.pop();
+    activeHistoryItem = history[0];
+    renderHistory();
+    renderPresets();
+  } else {
+    activeHistoryItem.prompt = prompt;
+    activeHistoryItem.shader = shader;
+    currentShader = shader;
+    activeHistoryItem.params = controls.getValues();
+  }
+  saveHistory();
+  showSaveIndicator();
+  manualSaveBtn.innerHTML = '<iconify-icon icon="mingcute:check-line" width="18" height="18"></iconify-icon>';
+  manualSaveBtn.style.color = 'var(--green)';
+  setTimeout(() => {
+    manualSaveBtn.innerHTML = '<iconify-icon icon="mingcute:save-2-line" width="18" height="18"></iconify-icon>';
+    manualSaveBtn.style.color = '';
+  }, 1200);
+});
+
 paramsEditDelete.addEventListener('click', async () => {
   const selected = [];
   for (const row of userParams.querySelectorAll('.control-row[data-uniform-name]')) {
@@ -1778,6 +1805,7 @@ rightResizeHandle.addEventListener('mousedown', (e) => {
 exportBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   exportMenu.classList.toggle('open');
+  exportMenu.classList.add('open-up');
 });
 
 document.addEventListener('click', () => exportMenu.classList.remove('open'));
