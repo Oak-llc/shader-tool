@@ -409,7 +409,25 @@ const controls = new ControlsPanel(userParams, (name, value) => {
   }
 });
 
-// ── Static resolution control (always in system-params, never cleared) ────────
+// ── Resolution control (per-shader, saved with history item) ─────────────────
+const RES_STEPS = [
+  { label: 'Low',  value: 0.25 },
+  { label: 'Med',  value: 0.5  },
+  { label: 'High', value: 0.75 },
+  { label: 'Max',  value: 1.0  },
+];
+
+let _resGroup;
+
+function setResolution(value) {
+  renderer.renderScale = value;
+  if (_resGroup) {
+    _resGroup.querySelectorAll('.seg-btn').forEach(b => {
+      b.classList.toggle('seg-btn--active', parseFloat(b.dataset.resValue) === value);
+    });
+  }
+}
+
 (function buildResolutionControl() {
   const wrap = document.createElement('div');
   wrap.className = 'control-row control-row--system';
@@ -418,25 +436,22 @@ const controls = new ControlsPanel(userParams, (name, value) => {
   label.className = 'control-label';
   label.textContent = 'Resolution';
 
-  const STEPS = [
-    { label: 'Low',    value: 0.25 },
-    { label: 'Med',    value: 0.5  },
-    { label: 'High',   value: 0.75 },
-    { label: 'Max',    value: 1.0  },
-  ];
-
   const group = document.createElement('div');
   group.className = 'seg-group';
+  _resGroup = group;
 
-  STEPS.forEach(({ label: lbl, value }) => {
+  RES_STEPS.forEach(({ label: lbl, value }) => {
     const btn = document.createElement('button');
     btn.className = 'seg-btn';
     btn.textContent = lbl;
+    btn.dataset.resValue = value;
     if (value === 1.0) btn.classList.add('seg-btn--active');
     btn.addEventListener('click', () => {
-      group.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('seg-btn--active'));
-      btn.classList.add('seg-btn--active');
-      renderer.renderScale = value;
+      setResolution(value);
+      if (activeHistoryItem) {
+        activeHistoryItem.renderScale = value;
+        debounceSaveHistory();
+      }
     });
     group.appendChild(btn);
   });
@@ -476,6 +491,7 @@ try {
       currentShader = imported;
       monacoEditor.setValue(imported);
       renderer.resetTime();
+      setResolution(1.0);
       const uniforms = extractUniforms(imported);
       controls.rebuild(uniforms);
       setStatus('Shader imported from Showcase — ' + uniforms.length + ' parameter(s)');
@@ -576,6 +592,7 @@ async function doGenerate() {
         descriptionArrow.classList.add('open');
         localStorage.setItem('shader-description-open', 'true');
       }
+      setResolution(1.0);
       addHistory(prompt);
       finish();
     },
@@ -957,6 +974,7 @@ newSessionBtn.addEventListener('click', () => {
   compileBtn.classList.remove('dirty');
   controls.rebuild([]);
   renderer.compile(''); // revert to blank default
+  setResolution(1.0);
   setStatus('Ready — enter a prompt and click Generate');
   // Deselect any active history item
   document.querySelectorAll('.history-item.active').forEach(el => el.classList.remove('active'));
@@ -1341,6 +1359,7 @@ function renderHistory() {
         monacoEditor.setValue(item.shader);
         renderer.compile(item.shader);
         renderer.resetTime();
+        setResolution(item.renderScale ?? 1.0);
         const uniforms = extractUniforms(item.shader);
         controls.rebuild(uniforms, item.params || {});
         pushUndoState(item.shader, controls.getValues());
