@@ -154,7 +154,7 @@ app.post('/api/generate', async (req, res) => {
     try {
       const stream = anthropicClient(apiKey).messages.stream({
         model,
-        max_tokens: 4096,
+        max_tokens: 8192,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userContent }],
       });
@@ -189,7 +189,7 @@ app.post('/api/generate', async (req, res) => {
     try {
       const stream = openaiClient(apiKey, baseURL).chat.completions.stream({
         model,
-        max_tokens: 4096,
+        max_tokens: 8192,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: userContent },
@@ -234,7 +234,7 @@ app.post('/api/generate', async (req, res) => {
 
 // ── Non-streaming helpers ─────────────────────────────────────────────────────
 
-async function callAI(req, systemPrompt, userPrompt, maxTokens = 4096) {
+async function callAI(req, systemPrompt, userPrompt, maxTokens = 8192) {
   const { provider, apiKey, model, baseURL } = getConfig(req);
 
   if (provider === 'anthropic') {
