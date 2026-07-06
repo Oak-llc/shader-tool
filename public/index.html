@@ -462,7 +462,10 @@
         border-color: #555;
       }
     </style>
-  <script defer src="/_vercel/insights/script.js"></script>
+  <script type="module">
+    import { inject } from "https://esm.sh/@vercel/analytics";
+    inject();
+  </script>
   </head>
   <body>
     <canvas class="bg-canvas" id="bg"></canvas>

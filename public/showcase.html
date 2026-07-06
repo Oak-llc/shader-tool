@@ -7,7 +7,10 @@
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/showcase.css" />
   <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
+  <script type="module">
+    import { inject } from "https://esm.sh/@vercel/analytics";
+    inject();
+  </script>
 </head>
 <body>
 <div id="app" class="showcase-app">
