@@ -3,6 +3,7 @@ import { extractUniforms } from './parser.js';
 import { ControlsPanel } from './controls.js';
 import { generateShader } from './ai.js';
 import { exportGLSL, exportVanillaJS, exportReact, exportSvelte } from './exporters.js';
+import { authClient, initAuthWidget, getUser } from './auth.js';
 
 const PROVIDER_MODEL_LABELS = {
   anthropic: 'Claude',
@@ -158,6 +159,8 @@ const paramCopyBtn       = document.getElementById('param-copy-btn');
 const paramEditBtn       = document.getElementById('param-edit-btn');
 const paramSaveBtn       = document.getElementById('param-save-btn');
 const manualSaveBtn      = document.getElementById('manual-save-btn');
+const saveProfileBtn     = document.getElementById('save-profile-btn');
+const authWidget         = document.getElementById('auth-widget');
 const paramsEditBar      = document.getElementById('params-edit-bar');
 const paramsEditCount    = document.getElementById('params-edit-count');
 const paramsEditCancel   = document.getElementById('params-edit-cancel');
@@ -482,8 +485,11 @@ try {
 } catch (_) {}
 
 // ── Showcase import ───────────────────────────────────────────────────────────
+let remixOfId = null;
 try {
   const imported = localStorage.getItem('shader-showcase-import');
+  remixOfId = localStorage.getItem('shader-remix-of');
+  localStorage.removeItem('shader-remix-of');
   if (imported) {
     localStorage.removeItem('shader-showcase-import');
     const err = renderer.compile(imported);
@@ -1586,6 +1592,37 @@ paramSaveBtn.addEventListener('click', () => {
 });
 
 paramsEditCancel.addEventListener('click', exitParamsEditMode);
+
+if (authWidget) initAuthWidget(authWidget);
+
+saveProfileBtn?.addEventListener('click', async () => {
+  const shader = currentShader || monacoEditor.getValue();
+  if (!shader?.trim()) return;
+
+  const defaultTitle = (activeHistoryItem?.name || activeHistoryItem?.prompt || promptInput.value || 'Untitled shader').slice(0, 80);
+  const title = window.prompt('Title for your profile:', defaultTitle);
+  if (!title?.trim()) return;
+
+  saveProfileBtn.disabled = true;
+  try {
+    const res = await authClient.$fetch('/api/shaders', {
+      method: 'POST',
+      body: { title: title.trim(), glslSource: shader, params: controls.getValues(), remixOfId },
+    });
+    if (res.error) throw new Error(res.error.message || 'Save failed');
+    remixOfId = null;
+    saveProfileBtn.innerHTML = '<iconify-icon icon="mingcute:check-line" width="18" height="18"></iconify-icon>';
+    saveProfileBtn.style.color = 'var(--green)';
+  } catch (err) {
+    window.alert(`Couldn't save to profile: ${err.message}`);
+  } finally {
+    saveProfileBtn.disabled = false;
+    setTimeout(() => {
+      saveProfileBtn.innerHTML = '<iconify-icon icon="mingcute:cloud-line" width="18" height="18"></iconify-icon>';
+      saveProfileBtn.style.color = '';
+    }, 1200);
+  }
+});
 
 manualSaveBtn.addEventListener('click', () => {
   const prompt = promptInput.value.trim();

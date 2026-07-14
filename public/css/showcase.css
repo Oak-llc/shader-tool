@@ -11,13 +11,92 @@
   padding: 28px 28px 48px;
 }
 
+/* ── Profile header ────────────────────────────────────────────────────────── */
+#app.profile-app {
+  grid-template-rows: 44px auto 1fr;
+}
+
+#profile-header {
+  padding: 20px 28px 0;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+#profile-header h1 {
+  font-size: 20px;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+#profile-empty {
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+/* ── Tabs ──────────────────────────────────────────────────────────────────── */
+#showcase-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 28px 0;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.showcase-tab {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+}
+
+.showcase-tab--active {
+  color: var(--text);
+  background: var(--surface);
+}
+
 /* ── Grid ──────────────────────────────────────────────────────────────────── */
-#showcase-grid {
+#showcase-grid,
+#community-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   max-width: 1400px;
   margin: 0 auto;
+}
+
+.sc-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.sc-card-owner {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.sc-card-like-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.sc-card-like-btn.liked {
+  color: var(--red, #dc2626);
 }
 
 /* ── Card ──────────────────────────────────────────────────────────────────── */

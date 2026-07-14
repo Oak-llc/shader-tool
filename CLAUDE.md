@@ -13,8 +13,9 @@ npm run dev
 npm start
 ```
 
-Requires `ANTHROPIC_API_KEY` in `.env` (see `.env.example`). Server runs at
-`http://localhost:2000` by default.
+Requires `ANTHROPIC_API_KEY` in `.env` (see `.env.example`). Also requires
+`MONGODB_URI`, `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` for auth/profiles
+(see below). Server runs at `http://localhost:2000` by default.
 
 No build step, no tests, no linter configured.
 
@@ -22,6 +23,31 @@ No build step, no tests, no linter configured.
 
 This is a single-page app: an Express backend (`server.js`) that proxies the
 Anthropic API, and a vanilla JS frontend served from `public/`.
+
+**Auth & profiles (`lib/auth.js`, `lib/shaders.js`)**
+
+- Auth is [better-auth](https://www.better-auth.com/) with the MongoDB adapter
+  (`lib/auth.js`), mounted at `/api/auth/*` in `server.js` via
+  `toNodeHandler`. Must be mounted before `express.json()` — better-auth reads
+  the raw request stream itself.
+- Every visitor is silently signed in as an `anonymous` user on first load
+  (`public/js/auth.js` → `initAuthWidget`, called from `app.js`). No form, no
+  friction — this is the account a shader gets saved under until the user
+  claims a handle.
+- The `username` plugin lets an anonymous user claim a permanent handle
+  (`authClient.updateUser({ username })`) without ever setting a password or
+  email. This is what makes a profile shareable at `/u/:username`.
+- `lib/shaders.js` is a small Express router (mounted at `/api`) for shader
+  persistence: `POST /shaders` (save to profile, optionally `remixOfId`),
+  `GET /shaders/:id` (permalink), `GET /users/:handle/shaders` (profile feed),
+  `GET /shaders/feed/recent` (community feed), `POST /shaders/:id/like`.
+  Ownership checks compare `session.user.id` to the stored `ownerId`.
+- `ownerName` is denormalized onto each shader doc at save time from the
+  current username — claiming a username after saving does not retroactively
+  relabel older shaders.
+- Pages: `public/profile.html` (`/u/:username`) and `public/shader-view.html`
+  (`/s/:id`, the remixable permalink) both reuse `public/js/mini-renderer.js`
+  for WebGL2 thumbnail/preview rendering, same as `showcase.js`.
 
 **Backend (`server.js`)**
 

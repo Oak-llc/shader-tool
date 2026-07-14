@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Showcase — Shader Tool</title>
+  <title>Shader — Shader Tool</title>
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/showcase.css" />
   <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
@@ -13,14 +13,14 @@
   </script>
 </head>
 <body>
-<div id="app" class="showcase-app">
+<div id="app" class="showcase-app profile-app">
 
   <header id="topbar">
     <a id="logo" href="/">Shader<span>Tool</span></a>
     <nav class="topbar-nav">
       <a class="nav-link" href="/app">Editor</a>
       <a class="nav-link" href="/learn">Learn</a>
-      <a class="nav-link nav-link--active" href="/showcase">Showcase</a>
+      <a class="nav-link" href="/showcase">Showcase</a>
     </nav>
     <div id="status-bar"></div>
     <div class="topbar-actions">
@@ -30,34 +30,20 @@
     </div>
   </header>
 
-  <div id="showcase-tabs">
-    <button class="showcase-tab showcase-tab--active" data-tab="curated">Curated</button>
-    <button class="showcase-tab" data-tab="community">Community</button>
+  <div id="profile-header">
+    <h1 id="sv-title">Loading…</h1>
+    <p id="sv-owner" style="color:var(--text-dim);font-size:13px"></p>
   </div>
 
   <div id="showcase-scroll">
-    <div id="showcase-grid"></div>
-    <div id="community-grid" hidden></div>
-  </div>
-
-  <!-- Maximize overlay -->
-  <div id="sc-maximize">
-    <div id="sc-maximize-bar">
-      <button id="sc-back-btn">
-        <iconify-icon icon="mingcute:arrow-left-line" width="14" height="14"></iconify-icon>
-        Back
-      </button>
-      <div id="sc-maximize-title"></div>
-      <button id="sc-open-btn">
-        <span id="sc-open-btn-label">Open in Editor</span>
-        <iconify-icon icon="mingcute:arrow-right-line" width="14" height="14"></iconify-icon>
-      </button>
-    </div>
-    <div id="sc-canvas-wrap">
-      <canvas id="sc-max-canvas"></canvas>
-      <div id="sc-info-overlay">
-        <div id="sc-info-name"></div>
-        <div id="sc-info-desc"></div>
+    <div id="sv-canvas-wrap" style="max-width:900px;margin:0 auto">
+      <canvas id="sv-canvas" style="width:100%;aspect-ratio:16/9;border-radius:var(--radius-lg);background:#000"></canvas>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:center">
+        <button class="btn btn-primary" id="sv-remix-btn">Remix in Editor</button>
+        <button class="btn btn-ghost" id="sv-like-btn">
+          <iconify-icon icon="mingcute:heart-line" width="16" height="16"></iconify-icon>
+          <span id="sv-like-count">0</span>
+        </button>
       </div>
     </div>
   </div>
@@ -72,6 +58,6 @@
     if (a && /^#[0-9a-f]{6}$/i.test(a)) document.documentElement.style.setProperty('--accent', a);
   })();
 </script>
-<script type="module" src="/js/showcase.js"></script>
+<script type="module" src="/js/shader-view.js"></script>
 </body>
 </html>

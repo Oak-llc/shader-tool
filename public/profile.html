@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Showcase — Shader Tool</title>
+  <title>Profile — Shader Tool</title>
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/showcase.css" />
   <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
@@ -13,14 +13,14 @@
   </script>
 </head>
 <body>
-<div id="app" class="showcase-app">
+<div id="app" class="showcase-app profile-app">
 
   <header id="topbar">
     <a id="logo" href="/">Shader<span>Tool</span></a>
     <nav class="topbar-nav">
       <a class="nav-link" href="/app">Editor</a>
       <a class="nav-link" href="/learn">Learn</a>
-      <a class="nav-link nav-link--active" href="/showcase">Showcase</a>
+      <a class="nav-link" href="/showcase">Showcase</a>
     </nav>
     <div id="status-bar"></div>
     <div class="topbar-actions">
@@ -30,14 +30,13 @@
     </div>
   </header>
 
-  <div id="showcase-tabs">
-    <button class="showcase-tab showcase-tab--active" data-tab="curated">Curated</button>
-    <button class="showcase-tab" data-tab="community">Community</button>
+  <div id="profile-header">
+    <h1 id="profile-username"></h1>
+    <p id="profile-empty" hidden>No public shaders yet.</p>
   </div>
 
   <div id="showcase-scroll">
     <div id="showcase-grid"></div>
-    <div id="community-grid" hidden></div>
   </div>
 
   <!-- Maximize overlay -->
@@ -49,7 +48,7 @@
       </button>
       <div id="sc-maximize-title"></div>
       <button id="sc-open-btn">
-        <span id="sc-open-btn-label">Open in Editor</span>
+        <span id="sc-open-btn-label">Remix in Editor</span>
         <iconify-icon icon="mingcute:arrow-right-line" width="14" height="14"></iconify-icon>
       </button>
     </div>
@@ -72,6 +71,6 @@
     if (a && /^#[0-9a-f]{6}$/i.test(a)) document.documentElement.style.setProperty('--accent', a);
   })();
 </script>
-<script type="module" src="/js/showcase.js"></script>
+<script type="module" src="/js/profile.js"></script>
 </body>
 </html>

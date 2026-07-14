@@ -108,19 +108,37 @@ names.
 
 ```
 server.js              Express backend; proxies Anthropic / OpenAI APIs via SSE
+lib/
+  auth.js              better-auth instance (MongoDB adapter, anonymous + username plugins)
+  shaders.js           Shader persistence API — save/delete/feed/like, mounted at /api
 public/
   index.html           Landing page (provider selection)
   app.html             Main editor
-  showcase.html        Example shader gallery
+  showcase.html        Example shader gallery + community feed tab
   learn.html           Educational resources
+  profile.html         Public profile feed (/u/:username)
+  shader-view.html     Shareable, remixable shader permalink (/s/:id)
   js/
     app.js             Main controller — wires all UI, manages state, orchestrates flows
     renderer.js        WebGL2 wrapper (full-screen triangle, uniform binding, animation loop)
+    mini-renderer.js   Lightweight WebGL2 renderer shared by showcase/profile/permalink thumbnails
     parser.js          Extracts uniform + @param metadata from GLSL source
     controls.js        Builds interactive parameter UI from uniform descriptors
     exporters.js       Generates Vanilla JS / React / Svelte component code
     ai.js              SSE client for streaming shader generation
+    auth.js            better-auth client — silent anonymous sign-in + username claiming widget
 ```
+
+## Accounts & profiles
+
+Every visitor is signed in anonymously the moment the editor loads — no form,
+no password. Click the account widget in the toolbar to claim a permanent
+username, which turns your saved shaders into a public profile at
+`/u/<username>`. Use the cloud button next to Save to post the current shader
+to your profile; each saved shader gets a shareable, remixable permalink at
+`/s/<id>` and can be "remixed" from the Showcase's Community tab or your
+profile page, which loads it into the editor and tags your next save as a
+remix.
 
 ---
 
@@ -144,3 +162,6 @@ cleanup.
 | ------------------- | ------- | --------------------------------------------- |
 | `ANTHROPIC_API_KEY` | —       | Required when using Anthropic as the provider |
 | `PORT`              | `2000`  | HTTP port the server listens on               |
+| `MONGODB_URI`       | —       | Required — connection string for accounts/profiles/shaders |
+| `BETTER_AUTH_SECRET`| —       | Required — random secret used to sign sessions |
+| `BETTER_AUTH_URL`   | —       | Required — base URL the server is reachable at (e.g. `http://localhost:2000`) |

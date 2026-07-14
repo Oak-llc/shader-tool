@@ -1,79 +1,11 @@
 import { SHOWCASE_SHADERS } from './showcase-shaders.js';
-
-// ── Minimal WebGL2 renderer ───────────────────────────────────────────────────
-
-const VERT_SRC = `#version 300 es
-void main() {
-  vec2 verts[3];
-  verts[0] = vec2(-1.0, -1.0);
-  verts[1] = vec2( 3.0, -1.0);
-  verts[2] = vec2(-1.0,  3.0);
-  gl_Position = vec4(verts[gl_VertexID], 0.0, 1.0);
-}`;
-
-function mkShader(gl, type, src) {
-  const s = gl.createShader(type);
-  gl.shaderSource(s, src);
-  gl.compileShader(s);
-  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-    console.warn('Shader compile error:', gl.getShaderInfoLog(s));
-    gl.deleteShader(s);
-    return null;
-  }
-  return s;
-}
-
-function createRenderer(canvas, fragSrc) {
-  const gl = canvas.getContext('webgl2', { antialias: false, powerPreference: 'low-power' });
-  if (!gl) return null;
-
-  const vert = mkShader(gl, gl.VERTEX_SHADER, VERT_SRC);
-  const frag = mkShader(gl, gl.FRAGMENT_SHADER, fragSrc);
-  if (!vert || !frag) return null;
-
-  const prog = gl.createProgram();
-  gl.attachShader(prog, vert);
-  gl.attachShader(prog, frag);
-  gl.linkProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-    console.warn('Program link error:', gl.getProgramInfoLog(prog));
-    return null;
-  }
-  gl.useProgram(prog);
-
-  const uTime = gl.getUniformLocation(prog, 'u_time');
-  const uRes  = gl.getUniformLocation(prog, 'u_resolution');
-
-  let rafId = null;
-  const t0 = performance.now();
-
-  function resize() {
-    const w = canvas.clientWidth  * devicePixelRatio | 0;
-    const h = canvas.clientHeight * devicePixelRatio | 0;
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width  = w;
-      canvas.height = h;
-      gl.viewport(0, 0, w, h);
-    }
-  }
-
-  function frame() {
-    rafId = requestAnimationFrame(frame);
-    resize();
-    if (uTime)  gl.uniform1f(uTime, (performance.now() - t0) / 1000);
-    if (uRes)   gl.uniform2f(uRes, canvas.width, canvas.height);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-  }
-
-  function start() { if (!rafId) frame(); }
-  function stop()  { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
-
-  return { start, stop, gl };
-}
+import { createRenderer } from './mini-renderer.js';
 
 // ── Build grid ────────────────────────────────────────────────────────────────
 
-const grid      = document.getElementById('showcase-grid');
+const grid          = document.getElementById('showcase-grid');
+const communityGrid = document.getElementById('community-grid');
+const tabButtons     = document.querySelectorAll('.showcase-tab');
 const maximize  = document.getElementById('sc-maximize');
 const maxCanvas = document.getElementById('sc-max-canvas');
 const backBtn   = document.getElementById('sc-back-btn');
@@ -81,6 +13,7 @@ const openBtn   = document.getElementById('sc-open-btn');
 const maxTitle  = document.getElementById('sc-maximize-title');
 const infoName  = document.getElementById('sc-info-name');
 const infoDesc  = document.getElementById('sc-info-desc');
+const openBtnLabel = document.getElementById('sc-open-btn-label');
 
 let activeMaxRenderer = null;
 let currentShaderData = null;
@@ -117,9 +50,80 @@ function buildCard(shader) {
   return card;
 }
 
+function buildCommunityCard(doc) {
+  const shader = {
+    id: doc.id,
+    name: doc.title,
+    description: `by ${doc.ownerName || 'Anonymous'}`,
+    glsl: doc.glslSource,
+    remixOfId: doc.remixOfId,
+  };
+
+  const card = buildCard(shader);
+
+  const meta = document.createElement('div');
+  meta.className = 'sc-card-meta';
+  meta.innerHTML = `
+    <a class="sc-card-owner" href="/u/${encodeURIComponent(doc.ownerName || '')}">@${doc.ownerName || 'anonymous'}</a>
+    <button class="sc-card-like-btn" data-id="${doc.id}">
+      <iconify-icon icon="mingcute:heart-line" width="13" height="13"></iconify-icon>
+      <span class="sc-card-like-count">${doc.likeCount || 0}</span>
+    </button>
+  `;
+  card.querySelector('.sc-card-info').appendChild(meta);
+
+  meta.querySelector('.sc-card-like-btn').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    const res = await fetch(`/api/shaders/${doc.id}/like`, { method: 'POST', credentials: 'include' });
+    if (!res.ok) return;
+    const { liked } = await res.json();
+    btn.classList.toggle('liked', liked);
+    const countEl = btn.querySelector('.sc-card-like-count');
+    countEl.textContent = Number(countEl.textContent) + (liked ? 1 : -1);
+  });
+
+  return card;
+}
+
 // Populate grid
 SHOWCASE_SHADERS.forEach(shader => {
   grid.appendChild(buildCard(shader));
+});
+
+// ── Community tab ─────────────────────────────────────────────────────────────
+
+let communityLoaded = false;
+
+async function loadCommunityFeed() {
+  if (communityLoaded) return;
+  communityLoaded = true;
+  try {
+    const res = await fetch('/api/shaders/feed/recent');
+    const docs = await res.json();
+    if (!docs.length) {
+      communityGrid.innerHTML = '<p class="sc-card-desc" style="grid-column:1/-1">No community shaders yet — be the first to save one from the editor.</p>';
+      return;
+    }
+    docs.forEach(doc => {
+      const card = buildCommunityCard(doc);
+      communityGrid.appendChild(card);
+      observer.observe(card);
+    });
+  } catch (err) {
+    console.warn('Failed to load community feed:', err);
+  }
+}
+
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabButtons.forEach(b => b.classList.remove('showcase-tab--active'));
+    btn.classList.add('showcase-tab--active');
+    const tab = btn.dataset.tab;
+    grid.hidden = tab !== 'curated';
+    communityGrid.hidden = tab !== 'community';
+    if (tab === 'community') loadCommunityFeed();
+  });
 });
 
 // ── IntersectionObserver: animate only visible cards ─────────────────────────
@@ -143,6 +147,7 @@ function showMaximize(shader) {
   maxTitle.textContent  = shader.name;
   infoName.textContent  = shader.name;
   infoDesc.textContent  = shader.description;
+  openBtnLabel.textContent = shader.id ? 'Remix in Editor' : 'Open in Editor';
 
   // Pause all card renderers while maximized
   cardRenderers.forEach(r => r.stop());
@@ -175,6 +180,11 @@ backBtn.addEventListener('click', hideMaximize);
 openBtn.addEventListener('click', () => {
   if (!currentShaderData) return;
   localStorage.setItem('shader-showcase-import', currentShaderData.glsl);
+  if (currentShaderData.id) {
+    localStorage.setItem('shader-remix-of', currentShaderData.id);
+  } else {
+    localStorage.removeItem('shader-remix-of');
+  }
   window.location.href = '/app';
 });
 

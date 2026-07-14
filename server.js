@@ -5,14 +5,23 @@ import express from 'express';
 import OpenAI from 'openai';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { toNodeHandler } from 'better-auth/node';
+import { auth } from './lib/auth.js';
+import { shaderRoutes } from './lib/shaders.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
+
+// better-auth needs the raw request stream, so it must be mounted before express.json().
+app.all('/api/auth/*', toNodeHandler(auth));
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(join(__dirname, 'public')));
+
+app.use('/api', shaderRoutes);
 
 const SYSTEM_PROMPT = `You are an expert GLSL shader author. You will be given a description and must write a complete WebGL2 fragment shader.
 
@@ -379,6 +388,14 @@ app.get('/learn', (req, res) => {
 
 app.get('/showcase', (req, res) => {
   res.sendFile(join(__dirname, 'public', 'showcase.html'));
+});
+
+app.get('/u/:username', (req, res) => {
+  res.sendFile(join(__dirname, 'public', 'profile.html'));
+});
+
+app.get('/s/:id', (req, res) => {
+  res.sendFile(join(__dirname, 'public', 'shader-view.html'));
 });
 
 app.listen(port, () => {
