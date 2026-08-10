@@ -50,14 +50,14 @@ parameter controls, and export to React, Svelte, Vanilla JS, or raw GLSL.
 ```bash
 git clone <repo-url>
 cd shader-tool
-npm install
+pnpm install
 cp .env.example .env   # add your API key (see Providers below)
-npm run dev            # auto-restarts on file change
+pnpm run dev            # auto-restarts on file change
 ```
 
 Open `http://localhost:2000` (or the port set in `.env`).
 
-For production: `npm start`.
+For production: `pnpm start`.
 
 ---
 

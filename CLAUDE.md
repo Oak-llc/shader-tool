@@ -7,10 +7,10 @@ code in this repository.
 
 ```bash
 # Development (auto-restart on file change)
-npm run dev
+pnpm run dev
 
 # Production
-npm start
+pnpm start
 ```
 
 Requires `ANTHROPIC_API_KEY` in `.env` (see `.env.example`). Also requires
