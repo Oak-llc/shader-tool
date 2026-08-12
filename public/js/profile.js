@@ -104,15 +104,21 @@ themeToggle.addEventListener('click', () => {
 
 // ── Load profile feed ──────────────────────────────────────────────────────────
 (async function loadProfile() {
-  const res = await fetch(`/api/users/${encodeURIComponent(username)}/shaders`);
-  const docs = await res.json();
-  if (!docs.length) {
+  try {
+    const res = await fetch(`/api/users/${encodeURIComponent(username)}/shaders`);
+    if (!res.ok) throw new Error(`Profile feed unavailable (${res.status})`);
+    const docs = await res.json();
+    if (!docs.length) {
+      emptyLabel.hidden = false;
+      return;
+    }
+    docs.forEach(doc => {
+      const card = buildCard(doc);
+      grid.appendChild(card);
+      observer.observe(card);
+    });
+  } catch (err) {
+    console.warn('Failed to load profile feed:', err);
     emptyLabel.hidden = false;
-    return;
   }
-  docs.forEach(doc => {
-    const card = buildCard(doc);
-    grid.appendChild(card);
-    observer.observe(card);
-  });
 })();

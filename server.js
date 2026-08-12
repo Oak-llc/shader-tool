@@ -6,7 +6,7 @@ import OpenAI from 'openai';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { toNodeHandler } from 'better-auth/node';
-import { auth } from './lib/auth.js';
+import { getAuth, PersistenceUnavailableError } from './lib/auth.js';
 import { shaderRoutes } from './lib/shaders.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -16,7 +16,17 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 
 // better-auth needs the raw request stream, so it must be mounted before express.json().
-app.all('/api/auth/*', toNodeHandler(auth));
+app.all('/api/auth/*', async (req, res, next) => {
+  try {
+    const auth = await getAuth();
+    await toNodeHandler(auth)(req, res);
+  } catch (err) {
+    if (err instanceof PersistenceUnavailableError) {
+      return res.status(503).json({ error: 'Profile persistence is unavailable' });
+    }
+    next(err);
+  }
+});
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(join(__dirname, 'public')));

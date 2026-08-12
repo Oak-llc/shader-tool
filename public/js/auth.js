@@ -6,6 +6,7 @@ export const authClient = createAuthClient({
 });
 
 let currentUser = null;
+let authUnavailable = false;
 
 export function getUser() {
   return currentUser;
@@ -13,13 +14,19 @@ export function getUser() {
 
 // Every visitor gets a silent anonymous account on first load — no form, no friction.
 async function ensureSession() {
-  const { data } = await authClient.getSession();
-  if (data?.user) {
-    currentUser = data.user;
-    return data.user;
+  try {
+    const { data } = await authClient.getSession();
+    if (data?.user) {
+      currentUser = data.user;
+      return data.user;
+    }
+    const { data: signInData } = await authClient.signIn.anonymous();
+    currentUser = signInData?.user ?? null;
+  } catch (err) {
+    console.warn('Auth unavailable:', err);
+    authUnavailable = true;
+    currentUser = null;
   }
-  const { data: signInData } = await authClient.signIn.anonymous();
-  currentUser = signInData?.user ?? null;
   return currentUser;
 }
 
@@ -27,12 +34,13 @@ function renderWidget(container) {
   const user = currentUser;
   const label = user?.username ? user.username : (user?.name || 'Anonymous');
   container.innerHTML = `
-    <button class="btn btn-ghost btn-icon" id="auth-widget-btn" title="${user?.username ? 'Your profile' : 'Claim a username'}">
+    <button class="btn btn-ghost btn-icon" id="auth-widget-btn" ${authUnavailable ? 'disabled' : ''} title="${authUnavailable ? 'Profiles unavailable' : (user?.username ? 'Your profile' : 'Claim a username')}">
       <iconify-icon icon="mingcute:user-3-line" width="16" height="16"></iconify-icon>
       <span id="auth-widget-label">${label}</span>
     </button>
   `;
   const btn = container.querySelector('#auth-widget-btn');
+  if (authUnavailable) return;
   btn.addEventListener('click', async () => {
     if (user?.username) {
       window.location.href = `/u/${user.username}`;

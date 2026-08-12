@@ -100,6 +100,7 @@ async function loadCommunityFeed() {
   communityLoaded = true;
   try {
     const res = await fetch('/api/shaders/feed/recent');
+    if (!res.ok) throw new Error(`Community feed unavailable (${res.status})`);
     const docs = await res.json();
     if (!docs.length) {
       communityGrid.innerHTML = '<p class="sc-card-desc" style="grid-column:1/-1">No community shaders yet — be the first to save one from the editor.</p>';
@@ -112,6 +113,7 @@ async function loadCommunityFeed() {
     });
   } catch (err) {
     console.warn('Failed to load community feed:', err);
+    communityGrid.innerHTML = '<p class="sc-card-desc" style="grid-column:1/-1">Community shaders are unavailable right now.</p>';
   }
 }
 
