@@ -1,3 +1,33 @@
+// Shared perf boilerplate inlined into every export target (vanilla JS, React,
+// Svelte): a DPR-capped resize instead of raw devicePixelRatio, and an
+// IntersectionObserver + document.hidden check that pauses the draw loop
+// when the canvas is off-screen or the tab is backgrounded. Exported code
+// must stay standalone (pasted into an arbitrary project), so this is
+// inlined rather than imported from a shared module.
+function perfSetupSnippet(indent) {
+  return `${indent}const maxDPR = 2;
+${indent}let lastW = 0, lastH = 0, lastDPR = 0;
+${indent}function resizeIfNeeded() {
+${indent}  const dpr = Math.min(devicePixelRatio || 1, maxDPR);
+${indent}  const w = Math.floor(canvas.clientWidth * dpr);
+${indent}  const h = Math.floor(canvas.clientHeight * dpr);
+${indent}  if (w !== lastW || h !== lastH || dpr !== lastDPR) {
+${indent}    lastW = w; lastH = h; lastDPR = dpr;
+${indent}    canvas.width = w; canvas.height = h;
+${indent}  }
+${indent}}
+${indent}let visible = true;
+${indent}const io = new IntersectionObserver((entries) => {
+${indent}  visible = entries[0] ? entries[0].isIntersecting : true;
+${indent}}, { threshold: 0 });
+${indent}io.observe(canvas);`;
+}
+
+function perfGuardSnippet(indent, reschedule = "requestAnimationFrame(draw)") {
+  return `${indent}if (!visible || document.hidden) { rafId = ${reschedule}; return; }
+${indent}resizeIfNeeded();`;
+}
+
 function propList(uniforms) {
   return uniforms.map(u => u.name.replace(/^u_/, '')).join(', ');
 }
@@ -82,13 +112,13 @@ ${defaults}
   const vao = gl.createVertexArray();
   gl.bindVertexArray(vao);
 
+${perfSetupSnippet("  ")}
+
   const startTime = performance.now();
   let rafId;
 
   function draw() {
-    const w = canvas.clientWidth * devicePixelRatio;
-    const h = canvas.clientHeight * devicePixelRatio;
-    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+${perfGuardSnippet("    ")}
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl.useProgram(prog);
 
@@ -111,7 +141,7 @@ ${uniformSetters}
 
   return {
     setUniforms(newOpts) { Object.assign(state, newOpts); setUniforms(newOpts); },
-    destroy() { cancelAnimationFrame(rafId); gl.deleteProgram(prog); },
+    destroy() { cancelAnimationFrame(rafId); io.disconnect(); gl.deleteProgram(prog); },
   };
 }
 `;
@@ -182,13 +212,13 @@ export default function Shader(props) {
     const vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
 
+${perfSetupSnippet("    ")}
+
     const startTime = performance.now();
     let rafId;
 
     const draw = (currentProps) => {
-      const w = canvas.clientWidth * devicePixelRatio;
-      const h = canvas.clientHeight * devicePixelRatio;
-      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+${perfGuardSnippet("      ", "requestAnimationFrame(() => draw(stateRef.current))")}
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.useProgram(prog);
 
@@ -208,7 +238,7 @@ ${uniformSetters}
     stateRef.current = props;
     draw(props);
 
-    return () => { cancelAnimationFrame(rafId); gl.deleteProgram(prog); };
+    return () => { cancelAnimationFrame(rafId); io.disconnect(); gl.deleteProgram(prog); };
   }, []);
 
   useEffect(() => { stateRef.current = props; }, [props]);
@@ -285,12 +315,12 @@ void main() {
     const vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
 
+${perfSetupSnippet("    ")}
+
     const start = performance.now();
 
     function draw() {
-      const w = canvas.clientWidth * devicePixelRatio;
-      const h = canvas.clientHeight * devicePixelRatio;
-      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+${perfGuardSnippet("      ")}
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.useProgram(prog);
 
@@ -310,6 +340,7 @@ ${uniformSetters}
 
     return () => {
       cancelAnimationFrame(rafId);
+      io.disconnect();
       if (prog) gl.deleteProgram(prog);
     };
   });
